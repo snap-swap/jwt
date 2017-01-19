@@ -3,6 +3,8 @@ package io.igl.jwt.claims
 import spray.json.{JsString, JsValue}
 
 object Issuer {
+  val field: ClaimField = Iss
+
   def apply(value: String): Iss = {
     new Iss(value)
   }

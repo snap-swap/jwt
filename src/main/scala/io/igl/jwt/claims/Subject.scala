@@ -3,6 +3,8 @@ package io.igl.jwt.claims
 import spray.json.JsString
 
 object Subject {
+  val field: ClaimField = Sub
+
   def apply(subject: String): Sub = {
     Sub(subject)
   }

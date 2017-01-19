@@ -3,6 +3,8 @@ package io.igl.jwt.claims
 import spray.json.{JsNumber, JsValue}
 
 object ExpirationTime {
+  val field: ClaimField = Exp
+
   def apply(value: Long): Exp = {
     Exp(value)
   }

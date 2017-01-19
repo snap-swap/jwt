@@ -3,6 +3,8 @@ package io.igl.jwt.claims
 import spray.json.{JsNumber, JsValue}
 
 object NotBefore {
+  val field: ClaimField = Nbf
+
   def apply(value: Long): Nbf = {
     Nbf(value)
   }

@@ -4,6 +4,8 @@ import spray.json.{JsArray, JsString, JsValue}
 import spray.json.DefaultJsonProtocol._
 
 object Audience {
+  val field: ClaimField = Aud
+
   def apply(value: Either[String, Seq[String]]): Aud = {
     new Aud(value)
   }

@@ -3,6 +3,8 @@ package io.igl.jwt.claims
 import spray.json.{JsNumber, JsValue}
 
 object IssuedAt {
+  val field: ClaimField = Iat
+
   def apply(value: Long): Iat = {
     Iat(value)
   }
