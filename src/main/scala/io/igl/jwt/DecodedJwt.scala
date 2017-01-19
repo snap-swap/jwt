@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
+import io.igl.jwt.claims._
 import org.apache.commons.codec.binary.Base64
 import spray.json.DefaultJsonProtocol._
 import spray.json._
@@ -199,18 +200,14 @@ object DecodedJwt {
     require(!requiredHeaders.contains(Alg), "Alg should not be included in the required headers")
 
     // Extract the various parts of a JWT
-    val parts: (String, String, String) = jwt.split('.') match {
-      case Array(header, payload, signature) =>
-        (header, payload, signature)
-      case Array(header, payload) =>
-        (header, payload, "")
+    val (header, payload, signature) = jwt.split('.') match {
+      case Array(_header, _payload, _signature) =>
+        (_header, _payload, _signature)
+      case Array(_header, _payload) =>
+        (_header, _payload, "")
       case _ =>
         throw new IllegalArgumentException("Jwt could not be split into a header, payload, and signature")
     }
-
-    val header = parts._1
-    val payload = parts._2
-    val signature = parts._3
 
     // Validate headers
     val headerJson = Try {
@@ -250,52 +247,37 @@ object DecodedJwt {
       }
     }.getOrElse(throw new IllegalArgumentException("Decoded payload could not be parsed to a JSON object"))
 
-    val claims = payloadJson.fields.flatMap {
-      case (field, value) =>
-        requiredClaims.find(x => x.name == field) match {
-          case Some(requiredClaim) => requiredClaim.attemptApply(value).map {
-            case exp: Exp =>
-              now < exp.value match {
-                case true => exp
-                case false => throw new IllegalArgumentException("Jwt has expired")
-              }
-            case nbf: Nbf =>
-              now > nbf.value match {
-                case true => nbf
-                case false => throw new IllegalArgumentException("Jwt is not yet valid")
-              }
-            case fIss: Iss =>
-              iss.map(_.equals(fIss) match {
-                case true => fIss
-                case false => throw new IllegalArgumentException("Iss didn't match required iss")
-              }).getOrElse(fIss)
-            case fAud: Aud =>
-              aud.map(_.equals(fAud) match {
-                case true => fAud
-                case false => throw new IllegalArgumentException("Aud didn't match required aud")
-              }).getOrElse(fAud)
-            case fIat: Iat =>
-              iat.map(_.equals(fIat) match {
-                case true => fIat
-                case false => throw new IllegalArgumentException("Iat didn't match required iat")
-              }).getOrElse(fIat)
-            case fSub: Sub =>
-              sub.map(_.equals(fSub) match {
-                case true => fSub
-                case false => throw new IllegalArgumentException("Sub didn't match required sub")
-              }).getOrElse(fSub)
-            case fJti: Jti =>
-              jti.map(_.equals(fJti) match {
-                case true => fJti
-                case false => throw new IllegalArgumentException("Jti didn't match required jti")
-              }).getOrElse(fJti)
-            case claim => claim
-          }
-          case None =>
-            ignoredClaims.find(_ == field).
-              getOrElse(throw new IllegalArgumentException("Found claim that is in neither the required or ignored sets"))
-            None
+    val claims = payloadJson.fields.flatMap { case (field, value) =>
+      requiredClaims.find(x => x.name == field) match {
+        case Some(requiredClaim) => requiredClaim.attemptApply(value).map {
+          case exp: Exp =>
+            now < exp.value match {
+              case true => exp
+              case false => throw new IllegalArgumentException("Jwt has expired")
+            }
+          case nbf: Nbf =>
+            now > nbf.value match {
+              case true => nbf
+              case false => throw new IllegalArgumentException("Jwt is not yet valid")
+            }
+          case _iss: Iss =>
+            validateEquals(iss, _iss, "Iss didn't match required iss")
+          case _aud: Aud =>
+            validateEquals(aud, _aud, "Aud didn't match required aud")
+          case _iat: Iat =>
+            validateEquals(iat, _iat, "Iat didn't match required iat")
+          case _sub: Sub =>
+            validateEquals(sub, _sub, "Sub didn't match required sub")
+          case _jti: Jti =>
+            validateEquals(jti, _jti, "Jti didn't match required jti")
+          case claim =>
+            claim
         }
+        case None =>
+          ignoredClaims.find(_ == field).
+            getOrElse(throw new IllegalArgumentException("Found claim that is in neither the required or ignored sets"))
+          None
+      }
     }
 
     if (claims.size != requiredClaims.size)
@@ -304,10 +286,24 @@ object DecodedJwt {
     // Validate signature
     val correctSignature = encodedSignature(header + ('.' +: payload), requiredAlg, key)
 
-    if (constantTimeIsEqual(signature.getBytes("utf-8"), correctSignature.getBytes("utf-8")))
+    if (constantTimeIsEqual(signature.getBytes("utf-8"), correctSignature.getBytes("utf-8"))) {
       new DecodedJwt(headers.toSeq, claims.toSeq)
-    else
+    } else {
       throw new IllegalArgumentException("Signature is incorrect")
+    }
   }
 
+  private[this] def validateEquals(that: Option[ClaimValue], other: ClaimValue, message: String) = {
+    that
+      .map(equals(other, message, _))
+      .getOrElse(other)
+  }
+
+  private[this] def equals(other: ClaimValue, message: String, value: ClaimValue) = {
+    if (value.equals(other)) {
+      other
+    } else {
+      throw new IllegalArgumentException(message)
+    }
+  }
 }

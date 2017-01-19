@@ -1,5 +1,7 @@
 package io.igl.jwt
 
+import io.igl.jwt.claims.ClaimValue
+
 import scala.reflect.ClassTag
 
 trait Jwt {

@@ -1,5 +1,6 @@
 package io.igl.jwt
 
+import io.igl.jwt.claims._
 import org.apache.commons.codec.binary.Base64
 import org.scalatest.{Matchers, WordSpecLike}
 import spray.json._
@@ -192,7 +193,7 @@ class JwtSpec extends WordSpecLike with Matchers {
     }
 
     "support all registered claims" in {
-      import ClaimHelper._
+      import ClaimSeq._
 
       val alg = Alg(Algorithm.HS256)
       val iss = Iss("hindley")
@@ -278,13 +279,9 @@ class JwtSpec extends WordSpecLike with Matchers {
 
     "support private unregistered fields" in {
       object Uid extends ClaimField {
-        override def attemptApply(value: JsValue): Option[ClaimValue] = {
-          value match {
-            case JsNumber(v) =>
-              Some(apply(v.toLong))
-            case _ =>
-              None
-          }
+        override protected def attemptApply: JsonToClaim = {
+          case JsNumber(v) =>
+            apply(v.toLong)
         }
 
         override val name: String = "uid"
