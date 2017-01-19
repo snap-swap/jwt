@@ -1,6 +1,6 @@
 package io.igl.jwt
 
-import play.api.libs.json.{JsString, JsValue}
+import spray.json._
 
 trait HeaderValue extends JwtValue {
   val field: HeaderField
@@ -16,8 +16,14 @@ case class Typ(value: String) extends HeaderValue {
 }
 
 object Typ extends HeaderField {
-  override def attemptApply(value: JsValue): Option[Typ] =
-    value.asOpt[String].map(apply)
+  override def attemptApply(value: JsValue): Option[Typ] = {
+    value match {
+      case JsString(v) =>
+        Some(apply(v))
+      case _ =>
+        None
+    }
+  }
 
   override val name = "typ"
 }
@@ -28,15 +34,27 @@ case class Alg(value: Algorithm) extends HeaderValue {
 }
 
 object Alg extends HeaderField {
-  override def attemptApply(value: JsValue): Option[Alg] =
-    value.asOpt[String].flatMap(Algorithm.getAlgorithm).map(apply)
+  override def attemptApply(value: JsValue): Option[Alg] = {
+    value match {
+      case JsString(v) =>
+        Algorithm.getAlgorithm(v).map(apply)
+      case _ =>
+        None
+    }
+  }
 
   override val name = "alg"
 }
 
 case object Cty extends HeaderField with HeaderValue {
-  override def attemptApply(value: JsValue): Option[HeaderValue] =
-    value.asOpt[String].map{case this.value => Cty}
+  override def attemptApply(value: JsValue): Option[HeaderValue] = {
+    value match {
+      case JsString(_) =>
+        Some(Cty)
+      case _ =>
+        None
+    }
+  }
 
   override val name = "cty"
   override val field: HeaderField = this

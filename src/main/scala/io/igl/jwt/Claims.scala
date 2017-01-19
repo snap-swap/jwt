@@ -1,6 +1,7 @@
 package io.igl.jwt
 
-import play.api.libs.json.{JsNumber, JsArray, JsString, JsValue}
+import spray.json.DefaultJsonProtocol._
+import spray.json._
 
 trait ClaimValue extends JwtValue {
   val field: ClaimField
@@ -16,8 +17,14 @@ case class Iss(value: String) extends ClaimValue {
 }
 
 object Iss extends ClaimField {
-  override def attemptApply(value: JsValue): Option[ClaimValue] =
-    value.asOpt[String].map(apply)
+  override def attemptApply(value: JsValue): Option[ClaimValue] = {
+    value match {
+      case JsString(v) =>
+        Some(apply(v))
+      case _ =>
+        None
+    }
+  }
 
   override val name = "iss"
 }
@@ -28,8 +35,15 @@ case class Sub(value: String) extends ClaimValue {
 }
 
 object Sub extends ClaimField {
-  override def attemptApply(value: JsValue): Option[Sub] =
-    value.asOpt[String].map(apply)
+  override def attemptApply(value: JsValue): Option[Sub] = {
+    value match {
+      case JsString(v) =>
+        Some(apply(v))
+      case _ =>
+        None
+    }
+  }
+
 
   override val name = "sub"
 }
@@ -37,19 +51,28 @@ object Sub extends ClaimField {
 case class Aud(value: Either[String, Seq[String]]) extends ClaimValue {
   override val field: ClaimField = Aud
   override val jsValue: JsValue = value match {
-    case Left(single) => JsString(single)
-    case Right(many) => JsArray(many.map(JsString))
+    case Left(single) =>
+      JsString(single)
+    case Right(many) =>
+      JsArray(many.map(JsString(_)): _*)
   }
 }
 
 object Aud extends ClaimField {
   def apply(value: String): Aud = Aud(Left(value))
+
   def apply(value: Seq[String]): Aud = Aud(Right(value))
 
-  override def attemptApply(value: JsValue): Option[ClaimValue] =
-    value.asOpt[Seq[String]].map(v => Aud(Right(v))).orElse{
-      value.asOpt[String].map(v => Aud(Left(v)))
+  override def attemptApply(value: JsValue): Option[ClaimValue] = {
+    value match {
+      case JsString(v) =>
+        Some(Aud(Left(v)))
+      case JsArray(v) =>
+        Some(Aud(Right(v.map(_.convertTo[String]))))
+      case _ =>
+        None
     }
+  }
 
   override val name = "aud"
 }
@@ -60,8 +83,14 @@ case class Exp(value: Long) extends ClaimValue {
 }
 
 case object Exp extends ClaimField {
-  override def attemptApply(value: JsValue): Option[ClaimValue] =
-    value.asOpt[Long].map(apply)
+  override def attemptApply(value: JsValue): Option[ClaimValue] = {
+    value match {
+      case JsNumber(v) =>
+        Some(apply(v.toLong))
+      case _ =>
+        None
+    }
+  }
 
   override val name = "exp"
 }
@@ -72,8 +101,14 @@ case class Nbf(value: Long) extends ClaimValue {
 }
 
 object Nbf extends ClaimField {
-  override def attemptApply(value: JsValue): Option[ClaimValue] =
-    value.asOpt[Long].map(apply)
+  override def attemptApply(value: JsValue): Option[ClaimValue] = {
+    value match {
+      case JsNumber(v) =>
+        Some(apply(v.toLong))
+      case _ =>
+        None
+    }
+  }
 
   override val name = "nbf"
 }
@@ -84,8 +119,14 @@ case class Iat(value: Long) extends ClaimValue {
 }
 
 object Iat extends ClaimField {
-  override def attemptApply(value: JsValue): Option[ClaimValue] =
-    value.asOpt[Long].map(apply)
+  override def attemptApply(value: JsValue): Option[ClaimValue] = {
+    value match {
+      case JsNumber(v) =>
+        Some(apply(v.toLong))
+      case _ =>
+        None
+    }
+  }
 
   override val name = "iat"
 }
@@ -96,8 +137,14 @@ case class Jti(value: String) extends ClaimValue {
 }
 
 object Jti extends ClaimField {
-  override def attemptApply(value: JsValue): Option[ClaimValue] =
-    value.asOpt[String].map(apply)
+  override def attemptApply(value: JsValue): Option[ClaimValue] = {
+    value match {
+      case JsString(v) =>
+        Some(apply(v))
+      case _ =>
+        None
+    }
+  }
 
   override val name = "jti"
 }

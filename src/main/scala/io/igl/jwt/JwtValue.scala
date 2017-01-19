@@ -1,12 +1,11 @@
 package io.igl.jwt
 
-import play.api.libs.json._
+import spray.json.JsValue
 
 /**
- * A representation of a jwt field value.
- */
+  * A representation of a jwt field value.
+  */
 trait JwtValue {
-
   /** The field to which a value belongs **/
   val field: JwtField
 
@@ -15,5 +14,4 @@ trait JwtValue {
 
   /** The value of a field represented as json **/
   val jsValue: JsValue
-
 }
