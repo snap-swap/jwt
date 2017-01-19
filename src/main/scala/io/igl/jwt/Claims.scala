@@ -148,3 +148,19 @@ object Jti extends ClaimField {
 
   override val name = "jti"
 }
+
+object ClaimHelper {
+
+  implicit class RichClaimValue(value: ClaimValue) {
+    def and(nextClaim: ClaimValue): Seq[ClaimValue] = {
+      Seq(value, nextClaim)
+    }
+  }
+
+  implicit class RichClaimSeq(value: Seq[ClaimValue]) {
+    def and(nextClaim: ClaimValue): Seq[ClaimValue] = {
+      value :+ nextClaim
+    }
+  }
+
+}

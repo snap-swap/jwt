@@ -192,6 +192,8 @@ class JwtSpec extends WordSpecLike with Matchers {
     }
 
     "support all registered claims" in {
+      import ClaimHelper._
+
       val alg = Alg(Algorithm.HS256)
       val iss = Iss("hindley")
       val sub = Sub("123456789")
@@ -201,8 +203,7 @@ class JwtSpec extends WordSpecLike with Matchers {
       val nbf = Nbf(now - 100)
       val iat = Iat(1234567890L)
       val jti = Jti("asdf1234")
-      val claimsA = Seq[ClaimValue](iss, sub, audSingle, exp, nbf, iat, jti)
-
+      val claimsA = iss and sub and audSingle and exp and nbf and iat and jti
       val jwtA = new DecodedJwt(Seq(alg), claimsA)
 
       DecodedJwt.validateEncodedJwt(
@@ -212,7 +213,7 @@ class JwtSpec extends WordSpecLike with Matchers {
         Set(),
         claimsA.map(_.field).toSet) should be(Success(jwtA))
 
-      val claimsB = Seq[ClaimValue](iss, sub, audMany, exp, nbf, iat, jti)
+      val claimsB = iss and sub and audMany and exp and nbf and iat and jti
       val jwtB = new DecodedJwt(Seq(alg), claimsB)
 
       DecodedJwt.validateEncodedJwt(
