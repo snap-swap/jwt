@@ -82,13 +82,19 @@ class DecodedJwt(headers_ : Seq[HeaderValue], claims_ : Seq[ClaimValue]) extends
 
 object DecodedJwt {
 
-  /** Returns the Base64 decoded version of provided string **/
+  /**
+    * Returns the Base64 decoded version of provided string
+    */
   private def decodeBase64(subject: String, charset: String): String = new String(Base64.decodeBase64(subject), charset)
 
-  /** Returns the Base64 url safe encoding of a byte array **/
+  /**
+    * Returns the Base64 url safe encoding of a byte array
+    */
   private def encodeBase64Url(subject: Array[Byte]): String = Base64.encodeBase64URLSafeString(subject)
 
-  /** Returns the Base64 url safe encoding of a string **/
+  /**
+    * Returns the Base64 url safe encoding of a string
+    */
   private def encodeBase64Url(subject: String): String = encodeBase64Url(subject.getBytes("utf-8"))
 
   /**
@@ -123,10 +129,6 @@ object DecodedJwt {
     }
   }
 
-  /**
-    * This method uses the underlying method {@link #validateEncodedJwtWithEncodedSecret(String,Array[Byte],Algorithm,Set[HeaderField],Set[ClaimField],Set[String],Set[String],Option[Iss],Option[Aud], Option[Iat], Option[Sub],Option[Jti],String)},
-    * by providing the secret with {@link String#getBytes(StandardCharsets#UTF_8)}
-    */
   def validateEncodedJwt(jwt: String,
                          key: String,
                          requiredAlg: Algorithm,
@@ -139,7 +141,8 @@ object DecodedJwt {
                          iat: Option[Iat] = None,
                          sub: Option[Sub] = None,
                          jti: Option[Jti] = None,
-                         charset: String = "UTF-8"): Try[Jwt] = {
+                         charset: String = "UTF-8",
+                         now: Long = System.currentTimeMillis / 1000): Try[Jwt] = {
     validateEncodedJwtWithEncodedSecret(
       jwt,
       key.getBytes(UTF_8),
@@ -188,7 +191,8 @@ object DecodedJwt {
                                           iat: Option[Iat] = None,
                                           sub: Option[Sub] = None,
                                           jti: Option[Jti] = None,
-                                          charset: String = "UTF-8"): Try[Jwt] = Try {
+                                          charset: String = "UTF-8",
+                                          now: Long = System.currentTimeMillis / 1000): Try[Jwt] = Try {
 
     require(requiredHeaders.map(_.name).size == requiredHeaders.size, "Required headers contains field name collisions")
     require(requiredClaims.map(_.name).size == requiredClaims.size, "Required claims contains field name collisions")
@@ -245,9 +249,6 @@ object DecodedJwt {
         case _ => throw new IllegalArgumentException()
       }
     }.getOrElse(throw new IllegalArgumentException("Decoded payload could not be parsed to a JSON object"))
-
-    /** Time in seconds since 1970-01-01T00:00:00Z UTC **/
-    def now: Long = System.currentTimeMillis / 1000
 
     val claims = payloadJson.fields.flatMap {
       case (field, value) =>
