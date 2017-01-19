@@ -24,8 +24,8 @@ class JwtSpec extends WordSpecLike with Matchers {
     "be equivalent to the same DecodedJwt after it has been encoded and decoded, given the same " +
       "secret was used and that the headers and claims previously set are demanded when decoding" in {
       val algorithm = Algorithm.HS256
-      val requiredHeaders = Set[HeaderField](Typ)
-      val requiredClaims = Set[ClaimField](Sub)
+      val requiredHeaders = Seq[HeaderField](Typ)
+      val requiredClaims = Seq[ClaimField](Sub)
       val headers = Seq[HeaderValue](Typ("JWT"), Alg(algorithm))
       val claims = Seq[ClaimValue](Sub("1234567890"))
 
@@ -42,8 +42,8 @@ class JwtSpec extends WordSpecLike with Matchers {
 
     "not be created if a different secret is used when decoding an encoded jwt" in {
       val algorithm = Algorithm.HS256
-      val requiredHeaders = Set[HeaderField](Typ)
-      val requiredClaims = Set[ClaimField](Sub)
+      val requiredHeaders = Seq[HeaderField](Typ)
+      val requiredClaims = Seq[ClaimField](Sub)
       val headers = Seq[HeaderValue](Typ("JWT"), Alg(algorithm))
       val claims = Seq[ClaimValue](Sub("1234567890"))
 
@@ -80,8 +80,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(Typ),
-        Set(Iss)
+        Seq(Typ),
+        Seq(Iss)
       ) should be(Success(jwt))
     }
 
@@ -96,8 +96,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(Typ),
-        Set(Iss)
+        Seq(Typ),
+        Seq(Iss)
       ) should be(Success(jwt))
     }
 
@@ -110,8 +110,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(Typ),
-        Set(Iss)
+        Seq(Typ),
+        Seq(Iss)
       ) should be(Success(jwt))
     }
 
@@ -124,8 +124,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(Typ),
-        Set(Iss)
+        Seq(Typ),
+        Seq(Iss)
       ) should be(Success(jwt))
     }
 
@@ -150,14 +150,14 @@ class JwtSpec extends WordSpecLike with Matchers {
     }
 
     "not be created from an encoded jwt where the required headers contains the algorithm field" in {
-      DecodedJwt.validateEncodedJwt("", secret, Algorithm.NONE, Set(Alg), Set()).isFailure should be(true)
+      DecodedJwt.validateEncodedJwt("", secret, Algorithm.NONE, Seq(Alg), Seq()).isFailure should be(true)
     }
 
     "not be created from an encoded jwt with fields we don't recognise as being either required or ignored" in {
       val jwt = new DecodedJwt(Seq(Alg(Algorithm.HS256), Typ("JWT")), Seq(Iss("hindley")))
       val encoded = jwt.encodedAndSigned(secret)
-      DecodedJwt.validateEncodedJwt(encoded, secret, Algorithm.HS256, Set(), Set(Iss)).isFailure should be(true)
-      DecodedJwt.validateEncodedJwt(encoded, secret, Algorithm.HS256, Set(Typ), Set()).isFailure should be(true)
+      DecodedJwt.validateEncodedJwt(encoded, secret, Algorithm.HS256, Seq(), Seq(Iss)).isFailure should be(true)
+      DecodedJwt.validateEncodedJwt(encoded, secret, Algorithm.HS256, Seq(Typ), Seq()).isFailure should be(true)
     }
 
     "be able to be created from an encoded jwt where we are ignoring some fields" in {
@@ -165,8 +165,8 @@ class JwtSpec extends WordSpecLike with Matchers {
       val jwtIgnoringIss = new DecodedJwt(Seq(jwt.getHeader[Alg].get, jwt.getHeader[Typ].get), Nil)
       val jwtIgnoringTyp = new DecodedJwt(Seq(jwt.getHeader[Alg].get), Seq(jwt.getClaim[Iss].get))
       val encoded = jwt.encodedAndSigned(secret)
-      DecodedJwt.validateEncodedJwt(encoded, secret, Algorithm.HS256, Set(Typ), Set(), Set(), Set(Iss.name)) should be(Success(jwtIgnoringIss))
-      DecodedJwt.validateEncodedJwt(encoded, secret, Algorithm.HS256, Set(), Set(Iss), Set(Typ.name)) should be(Success(jwtIgnoringTyp))
+      DecodedJwt.validateEncodedJwt(encoded, secret, Algorithm.HS256, Seq(Typ), Seq(), Seq(), Seq(Iss.name)) should be(Success(jwtIgnoringIss))
+      DecodedJwt.validateEncodedJwt(encoded, secret, Algorithm.HS256, Seq(), Seq(Iss), Seq(Typ.name)) should be(Success(jwtIgnoringTyp))
     }
 
     "not be created from an encoded jwt where the algorithms do not match" in {
@@ -174,7 +174,7 @@ class JwtSpec extends WordSpecLike with Matchers {
       val iss = Iss("hindley")
       val jwt = new DecodedJwt(Seq(Alg(Algorithm.HS256), typ), Seq(iss))
       val encoded = jwt.encodedAndSigned(secret)
-      DecodedJwt.validateEncodedJwt(encoded, secret, Algorithm.NONE, Set(typ.field), Set(iss.field)).isFailure should be(true)
+      DecodedJwt.validateEncodedJwt(encoded, secret, Algorithm.NONE, Seq(typ.field), Seq(iss.field)).isFailure should be(true)
     }
 
     "support all registered headers" in {
@@ -188,8 +188,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         jwt.encodedAndSigned(secret),
         secret,
         alg.value,
-        Set(Typ, Cty),
-        Set()) should be(Success(jwt))
+        Seq(Typ, Cty),
+        Seq()) should be(Success(jwt))
     }
 
     "support all registered claims" in {
@@ -211,8 +211,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         jwtA.encodedAndSigned(secret),
         secret,
         alg.value,
-        Set(),
-        claimsA.map(_.field).toSet) should be(Success(jwtA))
+        Seq(),
+        claimsA.map(_.field)) should be(Success(jwtA))
 
       val claimsB = iss and sub and audMany and exp and nbf and iat and jti
       val jwtB = new DecodedJwt(Seq(alg), claimsB)
@@ -221,8 +221,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         jwtB.encodedAndSigned(secret),
         secret,
         alg.value,
-        Set(),
-        claimsB.map(_.field).toSet) should be(Success(jwtB))
+        Seq(),
+        claimsB.map(_.field)) should be(Success(jwtB))
     }
 
     "not be created from an expired jwt" in {
@@ -232,8 +232,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         jwt.encodedAndSigned(secret),
         secret,
         Algorithm.NONE,
-        Set(),
-        Set(Exp)
+        Seq(),
+        Seq(Exp)
       ).isFailure should be(true)
     }
 
@@ -244,10 +244,10 @@ class JwtSpec extends WordSpecLike with Matchers {
         jwt.encodedAndSigned(secret),
         secret,
         Algorithm.NONE,
-        Set(Typ),
-        Set(),
-        Set(),
-        Set(Exp.name)
+        Seq(Typ),
+        Seq(),
+        Seq(),
+        Seq(Exp.name)
       ) should be(Success(new DecodedJwt(Seq(Typ("JWT")), Seq())))
     }
 
@@ -258,8 +258,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         jwt.encodedAndSigned(secret),
         secret,
         Algorithm.NONE,
-        Set(),
-        Set(Nbf)
+        Seq(),
+        Seq(Nbf)
       ).isFailure should be(true)
     }
 
@@ -270,10 +270,10 @@ class JwtSpec extends WordSpecLike with Matchers {
         jwt.encodedAndSigned(secret),
         secret,
         Algorithm.NONE,
-        Set(Typ),
-        Set(),
-        Set(),
-        Set(Nbf.name)
+        Seq(Typ),
+        Seq(),
+        Seq(),
+        Seq(Nbf.name)
       ) should be(Success(new DecodedJwt(Seq(Typ("JWT")), Seq())))
     }
 
@@ -302,15 +302,15 @@ class JwtSpec extends WordSpecLike with Matchers {
         jwt.encodedAndSigned(secret),
         secret,
         alg.value,
-        Set(),
-        Set(Uid)) should be(Success(jwt))
+        Seq(),
+        Seq(Uid)) should be(Success(jwt))
 
       DecodedJwt.validateEncodedJwt(
         jwt.encodedAndSigned(secret),
         secret,
         alg.value,
-        Set(),
-        Set(Uid)) should be(Success(jwt))
+        Seq(),
+        Seq(Uid)) should be(Success(jwt))
     }
 
     "check if a specific iss claim is required when creating from an encoded jwt" in {
@@ -323,8 +323,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(),
-        Set(Iss),
+        Seq(),
+        Seq(Iss),
         iss = Some(iss)
       ) should be(Success(jwt))
 
@@ -332,8 +332,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(),
-        Set(Iss),
+        Seq(),
+        Seq(Iss),
         iss = Some(Iss(iss.value + "a"))
       ).isFailure should be(true)
     }
@@ -348,8 +348,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(),
-        Set(Aud),
+        Seq(),
+        Seq(Aud),
         aud = Some(aud)
       ) should be(Success(jwt))
 
@@ -357,8 +357,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(),
-        Set(Aud),
+        Seq(),
+        Seq(Aud),
         aud = Some(Aud(aud.value.left + "a"))
       ).isFailure should be(true)
     }
@@ -373,8 +373,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(),
-        Set(Iat),
+        Seq(),
+        Seq(Iat),
         iat = Some(iat)
       ) should be(Success(jwt))
 
@@ -382,8 +382,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(),
-        Set(Iat),
+        Seq(),
+        Seq(Iat),
         iat = Some(Iat(iat.value + 1))
       ).isFailure should be(true)
     }
@@ -398,8 +398,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(),
-        Set(Sub),
+        Seq(),
+        Seq(Sub),
         sub = Some(sub)
       ) should be(Success(jwt))
 
@@ -407,8 +407,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(),
-        Set(Sub),
+        Seq(),
+        Seq(Sub),
         sub = Some(Sub(sub.value + "a"))
       ).isFailure should be(true)
     }
@@ -423,8 +423,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(),
-        Set(Jti),
+        Seq(),
+        Seq(Jti),
         jti = Some(jti)
       ) should be(Success(jwt))
 
@@ -432,8 +432,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         secret,
         alg.value,
-        Set(),
-        Set(Jti),
+        Seq(),
+        Seq(Jti),
         jti = Some(Jti(jti.value + "a"))
       ).isFailure should be(true)
     }
@@ -451,8 +451,8 @@ class JwtSpec extends WordSpecLike with Matchers {
         encoded,
         decodedSecret,
         alg.value,
-        Set(Typ),
-        Set(Iss)
+        Seq(Typ),
+        Seq(Iss)
       ) should be(Success(jwt))
     }
   }
