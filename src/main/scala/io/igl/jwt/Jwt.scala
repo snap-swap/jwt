@@ -14,7 +14,7 @@ trait Jwt {
   def getHeader[T <: HeaderValue : ClassTag]: Option[T]
 
   /**
-    * Attempts to return a [[ClaimValue]] of the provided type.
+    * Attempts to return a [[io.igl.jwt.claims.ClaimValue]] of the provided type.
     *
     * @tparam T the type of a potential claim
     * @return returns None if no claim found, otherwise a claim of the same type as requested wrapped in Some
