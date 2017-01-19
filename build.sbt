@@ -1,6 +1,6 @@
 name := "jwt"
 
-organization := "vc.snapswap"
+organization := "com.snapswap"
 
 version := "1.0.0"
 
