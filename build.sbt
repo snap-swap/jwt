@@ -2,9 +2,9 @@ name := "jwt"
 
 organization := "com.snapswap"
 
-version := "1.0.4"
+version := "1.0.5"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.11"
 
 scalacOptions := Seq(
   "-feature",
@@ -24,7 +24,7 @@ scalacOptions := Seq(
   "UTF-8")
 
 libraryDependencies ++= Seq(
-  "io.spray" %% "spray-json" % "1.3.2",
+  "io.spray" %% "spray-json" % "1.3.3",
   "commons-codec" % "commons-codec" % "1.10",
   "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 )
